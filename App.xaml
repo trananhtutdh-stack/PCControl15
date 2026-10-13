@@ -1,0 +1,84 @@
+﻿<Application x:Class="PCControl.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:PCControl"
+             xmlns:converter="clr-namespace:PCControl.Converters"
+             Startup="Application_Startup">
+
+    <Application.Resources>
+
+        <ResourceDictionary>
+
+            <ResourceDictionary.MergedDictionaries>
+
+                <ResourceDictionary Source="Assets/Style/Text.xaml"/>
+                <ResourceDictionary Source="Assets/Style/Image.xaml"/>
+                <ResourceDictionary Source="Assets/Style/Button.xaml"/>
+                <ResourceDictionary Source="Assets/Style/AppResources.xaml"/>
+                <ResourceDictionary Source="/PCControl;component/Assets/Style/Log.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+
+            <!-- Converter -->
+
+            <converter:BoolToVisibilityConverter
+                x:Key="BoolToVisibilityConverter"/>
+
+            <converter:BoolToBrushConverter
+                x:Key="ServoBrushConverter"
+                TrueBrush="LimeGreen"
+                FalseBrush="Gray"/>
+
+            <converter:BoolToBrushConverter
+                x:Key="CanMoveBrushConverter"
+                TrueBrush="DeepSkyBlue"
+                FalseBrush="Gray"/>
+
+            <converter:BoolToBrushConverter
+                x:Key="BusyBrushConverter"
+                TrueBrush="Gold"
+                FalseBrush="Gray"/>
+
+            <converter:BoolToBrushConverter
+                x:Key="ErrorBrushConverter"
+                TrueBrush="Red"
+                FalseBrush="Gray"/>
+
+            <converter:BoolToBrushConverter
+                x:Key="BoolToBrushConverter"
+                TrueBrush="LimeGreen"
+                FalseBrush="Gray"/>
+
+            <converter:BoolToTextConverter
+                x:Key="BoolToTextConverter"/>
+
+            <converter:EnumToTextConverter
+                x:Key="EnumToTextConverter"/>
+
+            <converter:EnumToBrushConverter
+                x:Key="EnumToBrushConverter"/>
+
+            <converter:AxisCanMoveBrushConverter
+                x:Key="AxisCanMoveBrushConverter"/>
+
+            <converter:AxisServoBrushConverter
+                x:Key="AxisServoBrushConverter"/>
+
+            <converter:BoolToServoTextConverter
+                x:Key="BoolToServoTextConverter"/>
+            <converter:BoolToServoHomeTextConverter
+                x:Key="BoolToServoHomeTextConverter"/>
+
+            <converter:BoolToHomeBrushConverter
+                x:Key="BoolToHomeBrushConverter"/>
+
+            <converter:MultiValueArrayConverter
+                x:Key="MultiValueArrayConverter"/>
+
+            <converter:JogLevelToBoolConverter
+                x:Key="JogLevelToBoolConverter"/>
+        </ResourceDictionary>
+
+    </Application.Resources>
+
+</Application>

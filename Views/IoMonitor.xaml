@@ -1,0 +1,207 @@
+﻿<UserControl x:Class="PCControl.Views.IoMonitor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:hmi="clr-namespace:PCControl.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="600"
+             d:DesignWidth="900"
+             >
+    <UserControl.Resources>
+        <Style x:Key="IoNavButton" TargetType="Button">
+            <Setter Property="Width" Value="50" />
+            <Setter Property="Foreground" Value="#E8EDF4" />
+            <Setter Property="Background" Value="#2A3544" />
+            <Setter Property="BorderBrush" Value="#556273" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#36475A" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1565A0" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#5C6B7A" />
+                                <Setter TargetName="Bd" Property="Background" Value="#1A222D" />
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#3D4F63" />
+                                <Setter Property="Opacity" Value="0.45" />
+                                <Setter Property="Cursor" Value="Arrow" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Background="{DynamicResource BgBrush}"
+                Padding="5">
+            
+            <TextBlock Text="{DynamicResource IoMonitor}"
+                       FontSize="14"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource AccentBrush}"
+                       Margin="5,0,0,0"
+                       VerticalAlignment="Center" />
+        </Border>
+
+        <Grid Grid.Row="1" Background="#1A222D" Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" BorderBrush="#3D4F63" BorderThickness="1" Background="#222B36">
+                    <UniformGrid Columns="3">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource IoNavButton}"
+                                    Command="{Binding InputNavigateCommand}" CommandParameter="First">&lt;&lt;</Button>
+                            <Button Style="{StaticResource IoNavButton}"
+                                    Command="{Binding InputNavigateCommand}" CommandParameter="Back">&lt;</Button>
+                        </StackPanel>
+                        <Label FontWeight="Bold" FontSize="20"
+                               Content="{Binding InputText}"
+                               Background="#1E2733" Foreground="#FFC107"
+                               HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                            <Button Style="{StaticResource IoNavButton}"
+                                    Command="{Binding InputNavigateCommand}" CommandParameter="Next">&gt;</Button>
+                            <Button Style="{StaticResource IoNavButton}"
+                                    Command="{Binding InputNavigateCommand}" CommandParameter="Last">&gt;&gt;</Button>
+                        </StackPanel>
+                    </UniformGrid>
+                </Border>
+
+                <Border Grid.Column="1" BorderBrush="#3D4F63" BorderThickness="1" Background="#222B36">
+                    <UniformGrid Columns="3">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource IoNavButton}"
+                                    Command="{Binding OutputNavigateCommand}" CommandParameter="First">&lt;&lt;</Button>
+                            <Button Style="{StaticResource IoNavButton}"
+                                    Command="{Binding OutputNavigateCommand}" CommandParameter="Back">&lt;</Button>
+                        </StackPanel>
+                        <Label FontWeight="Bold" FontSize="20"
+                               Content="{Binding OutputText}"
+                               Background="#1E2733" Foreground="#FFC107"
+                               HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                            <Button Style="{StaticResource IoNavButton}"
+                                    Command="{Binding OutputNavigateCommand}" CommandParameter="Next">&gt;</Button>
+                            <Button Style="{StaticResource IoNavButton}"
+                                    Command="{Binding OutputNavigateCommand}" CommandParameter="Last">&gt;&gt;</Button>
+                        </StackPanel>
+                    </UniformGrid>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" BorderBrush="#3D4F63" BorderThickness="1" Background="#222B36">
+                    <ItemsControl ItemsSource="{Binding Input}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="8" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="50" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="100" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" BorderBrush="#556273" BorderThickness="1" Background="#1E2733">
+                                        <TextBlock TextAlignment="Center" Foreground="#FFC107" Text="{Binding Device}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <Border Grid.Column="1" BorderBrush="#556273" BorderThickness="1" Background="#1E2733">
+                                        <TextBlock Foreground="#E8EDF4" Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <Border Grid.Column="2" BorderBrush="#556273" BorderThickness="1" Background="#1E2733">
+                                        <hmi:PlcButton Grid.Column="2"
+                                                       Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}}"
+                                                       Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Grid}}"
+                                                       FontSize="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Ipc="{Binding DataContext.Ipc, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                       ReadBit="{Binding Device}"
+                                                       Shape="Circle" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+
+                <Border Grid.Column="1" BorderBrush="#3D4F63" BorderThickness="1" Background="#222B36">
+                    <ItemsControl ItemsSource="{Binding Output}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="8" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="50" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="100" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" BorderBrush="#556273" BorderThickness="1" Background="#1E2733">
+                                        <TextBlock TextAlignment="Center" Foreground="#FFC107" Text="{Binding Device}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <Border Grid.Column="1" BorderBrush="#556273" BorderThickness="1" Background="#1E2733">
+                                        <TextBlock Foreground="#E8EDF4" Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <Border Grid.Column="2" BorderBrush="#556273" BorderThickness="1" Background="#1E2733">
+                                        <hmi:PlcButton Grid.Column="2"
+                                                       Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}}"
+                                                       Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Grid}}"
+                                                       FontSize="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Ipc="{Binding DataContext.Ipc, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                       ReadBit="{Binding Device}"
+                                                       Shape="Circle" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

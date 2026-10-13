@@ -1,0 +1,15 @@
+﻿<UserControl x:Class="PCControl.Views.Home"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Background="#273449" Margin="10">
+
+        <TextBlock Text="Home"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Foreground="White"/>   
+
+    </Grid>
+
+</UserControl>
+            

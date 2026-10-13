@@ -1,0 +1,154 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\Images\Control\delete.png" />
+    <None Remove="Assets\Images\Control\home.png" />
+    <None Remove="Assets\Images\Control\jog_minus.png" />
+    <None Remove="Assets\Images\Control\jog_plus.png" />
+    <None Remove="Assets\Images\Control\save.png" />
+    <None Remove="Assets\Images\Control\stop.png" />
+    <None Remove="Assets\Images\Control\update.png" />
+    <None Remove="Assets\Images\General\info.png" />
+    <None Remove="Assets\Images\General\user.png" />
+    <None Remove="Assets\Images\General\warning.png" />
+    <None Remove="Assets\Images\img_home.png" />
+    <None Remove="Assets\Images\io.png" />
+    <None Remove="Assets\Images\Languages\en_32x20.png" />
+    <None Remove="Assets\Images\Languages\en_48x30.png" />
+    <None Remove="Assets\Images\Languages\en_64x40.png" />
+    <None Remove="Assets\Images\Languages\zh_32x20.png" />
+    <None Remove="Assets\Images\Languages\zh_48x30.png" />
+    <None Remove="Assets\Images\Languages\zh_64x40.png" />
+    <None Remove="Assets\Images\LOGO.png" />
+    <None Remove="Assets\Images\menu-manual.png" />
+    <None Remove="Assets\Images\motion.png" />
+    <None Remove="Assets\Images\Navigation\alarm.png" />
+    <None Remove="Assets\Images\Navigation\cylinder.png" />
+    <None Remove="Assets\Images\Navigation\io.png" />
+    <None Remove="Assets\Images\Navigation\main.png" />
+    <None Remove="Assets\Images\Navigation\manual.png" />
+    <None Remove="Assets\Images\Navigation\motion.png" />
+    <None Remove="Assets\Images\Navigation\recipe.png" />
+    <None Remove="Assets\Images\Navigation\setting.png" />
+    <None Remove="Assets\Images\setting.png" />
+    <None Remove="Assets\Images\warning-list.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyLogger\ShareLibrary.csproj" />
+    <ProjectReference Include="..\PCControl.Core\PCControl.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PLCVir.Device">
+      <HintPath>..\PLCVir.Device\PLCVir.Device\bin\Debug\net8.0\PLCVir.Device.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="System.Reactive" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="DATA\IO.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Images\Control\delete.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Control\home.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Control\jog_minus.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Control\jog_plus.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Control\save.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Control\stop.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Control\update.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\General\info.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\General\user.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\General\warning.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\img_home.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\io.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Languages\en_32x20.png" />
+    <Resource Include="Assets\Images\Languages\en_48x30.png" />
+    <Resource Include="Assets\Images\Languages\en_64x40.png" />
+    <Resource Include="Assets\Images\Languages\zh_32x20.png" />
+    <Resource Include="Assets\Images\Languages\zh_48x30.png" />
+    <Resource Include="Assets\Images\Languages\zh_64x40.png" />
+    <Resource Include="Assets\Images\LOGO.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\menu-manual.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\motion.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Navigation\alarm.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Navigation\cylinder.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Navigation\io.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Navigation\main.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Navigation\manual.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Navigation\motion.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Navigation\recipe.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\Navigation\setting.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\setting.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Images\warning-list.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+</Project>
