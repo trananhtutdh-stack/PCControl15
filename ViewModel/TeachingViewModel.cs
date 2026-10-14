@@ -1,47 +1,32 @@
-﻿using AutoVision.Service.IPC;
+﻿using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using PCControl.Core.IPC;
-using PCControl.Machine;
-using PCControl.Service;
-using PCControl.Service.DeviceManager.Actuator;
-
-using System;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
+using PCControl.Service.Config;
+using PCControl.Service.IPC;
+using PCControl.Service.DeviceManager.Actuator;
+using PCControl.Service;
+using PCControl.Service.Navigation;
+using PCControl.Service.DeviceManager;
+using PCControl.Machine;
+using SharedLibrary.Wpf;
+using AutoVision.Service.IPC;
+using PCControl.DeviceManager;
 namespace PCControl.ViewModel
 {
     public partial class TeachingViewModel : ObservableObject
     {
-        
+        private readonly IActuatorDialogService _dialogService;
+
+        public ObservableCollection<IAxis> AxisLst { get; set; }
+        public ObservableCollection<Tool> ToolLst { get; set; }
+        public ObservableCollection<Cylinder> CylinderLst { get; set; }
+        public BlinkManager Blink => BlinkManager.Current;
+
         public MachineDevices Devices { get; }
-        private readonly MotionService _motionService;
-        //private readonly PositionManager _positionManager;
 
-        [ObservableProperty]
-        private bool isCH1Selected = true;
-
-        [ObservableProperty]
-        private bool isCH2Selected;
-
-        [ObservableProperty]
-        private string selectedChannelName = "CH1";
-
-        public ObservableCollection<IAxis> Axes { get; set; }
-
-        public ObservableCollection<Cylinder1> Cylinders { get; set; }
-
-        public ObservableCollection<Tool> Tools { get; set; }
-
-        [ObservableProperty]
-        private Tool _curTool;
-        public PosSetting PosZJigDown => PosControl.CH1_ROBOTZ_DOWN_JIG_POS;
-
-        public PosSetting PosZTrayDown => PosControl.CH1_ROBOTZ_DOWN_TRAY_POS;
-        private PosSetting CurToolXPos => CurTool.Index switch
+        public PosSt PosZJigDown => PosControl.CH1_ROBOTZ_DOWN_JIG_POS;
+        public PosSt PosZTrayDown => PosControl.CH1_ROBOTZ_DOWN_TRAY_POS;
+        private PosSt CurToolXPos => CurTool.Index switch
         {
             1 => PosControl.CH1_ROBOTX_1ST_TOOL1_POS,
             2 => PosControl.CH1_ROBOTX_1ST_TOOL2_POS,
@@ -49,8 +34,7 @@ namespace PCControl.ViewModel
             4 => PosControl.CH1_ROBOTX_1ST_TOOL4_POS,
             _ => PosControl.CH1_ROBOTX_1ST_TOOL1_POS,
         };
-
-        private PosSetting CurToolYPos => CurTool.Index switch
+        private PosSt CurToolYPos => CurTool.Index switch
         {
             1 => PosControl.CH1_ROBOTY_1ST_TOOL1_POS,
             2 => PosControl.CH1_ROBOTY_1ST_TOOL2_POS,
@@ -58,7 +42,27 @@ namespace PCControl.ViewModel
             4 => PosControl.CH1_ROBOTY_1ST_TOOL4_POS,
             _ => PosControl.CH1_ROBOTY_1ST_TOOL1_POS,
         };
-
+        [ObservableProperty] private Tool _curTool;
+        public double CurXJigPos
+        {
+            get => CurToolXPos.Position;
+            set
+            {
+                CurToolXPos.Position = value;
+                OnPropertyChanged();
+                NotifyTeachingLayout();
+            }
+        }
+        public double CurYJigPos
+        {
+            get => CurToolYPos.Position;
+            set
+            {
+                CurToolYPos.Position = value;
+                OnPropertyChanged();
+                NotifyTeachingLayout();
+            }
+        }
         public double TrayXPos
         {
             get => PosControl.CH1_ROBOTX_1ST_TRAY_POS.Position;
@@ -79,40 +83,15 @@ namespace PCControl.ViewModel
                 NotifyTeachingLayout();
             }
         }
-
-        public double JigTrayDeltaX=> CurXJigPos-TrayXPos;
-
+        public double JigTrayDeltaX => CurXJigPos - TrayXPos;
         public double JigTrayDeltaY => CurYJigPos - TrayYPos;
-
-        public double CurXJigPos
+        partial void OnCurToolChanged(Tool value)
         {
-            get=> CurToolXPos.Position;
-            set
-            {
-                CurToolXPos.Position = value;
-                OnPropertyChanged();
-                NotifyTeachingLayout();
-            }
-        }
-        public double CurYJigPos
-        {
-            get => CurToolYPos.Position;
-            set
-            {
-                CurToolYPos.Position = value;
-                OnPropertyChanged();
-                NotifyTeachingLayout();
-            }
-        }
-
-        partial void OnSelectedToolChanged(Tool value)
-        {
-            
             OnPropertyChanged(nameof(CurXJigPos));
             OnPropertyChanged(nameof(CurYJigPos));
-            //OnPropertyChanged(nameof(JigTrayDeltaX));
-            //OnPropertyChanged(nameof(JigTrayDeltaY));
+            NotifyTeachingLayout();
         }
+
         private void NotifyTeachingLayout()
         {
             OnPropertyChanged(nameof(TrayXPos));
@@ -120,726 +99,263 @@ namespace PCControl.ViewModel
             OnPropertyChanged(nameof(JigTrayDeltaX));
             OnPropertyChanged(nameof(JigTrayDeltaY));
         }
-
-        [ObservableProperty]
-        private JIG? jigData;
-
-        [ObservableProperty]
-        private TRAY? trayData;
-
-        //[ObservableProperty]
-        //private Position3D? selectedPosition;
-
-        [ObservableProperty]
-        private Tool? selectedTool;
-
-        [ObservableProperty]
-        private Cylinder1? jigCylinder;
-
-        [ObservableProperty]
-        private Cylinder1? trayCylinder;
-
-        public TeachingViewModel(
-            MachineDevices devices,
-            MotionService motionService
-            //,PositionManager positionManager
-            )
+        public TeachingViewModel(MachineDevices devices, IActuatorDialogService dialogService)
         {
             Devices = devices;
-            _motionService = motionService;
-            //_positionManager = positionManager;
+            _dialogService = dialogService;
 
-            foreach (var axis in devices.Axis.Values)
+            AxisLst = new ObservableCollection<IAxis>
             {
-                axis.StatusJugger();
+                Devices.CH1_X_AXIS,
+                Devices.CH1_Y_AXIS,
+                Devices.CH1_Z_AXIS,
+            };
+            ToolLst = new ObservableCollection<Tool>
+            {
+                Devices.TOOL1_CH1,
+                Devices.TOOL2_CH1,
+                Devices.TOOL3_CH1,
+                Devices.TOOL4_CH1,
+            };
+            CylinderLst = new ObservableCollection<Cylinder>
+            {
+                Devices.CYL_TOOL1_CH1,
+                Devices.CYL_TOOL2_CH1,
+                Devices.CYL_TOOL3_CH1,
+                Devices.CYL_TOOL4_CH1,
+            };
+            _curTool = Devices.TOOL1_CH1;
+        }
+
+        #region MOTION
+        [RelayCommand]
+        public void ServoOn(object? obj)
+        {
+            if (obj is IAxis axis)
+            {
+                if (axis.IsServoON) axis.ServoOff();
+                else axis.ServoOn();
             }
-            LoadChannel();
-
-            //_curTool = Devices.Cylinders.["CYL_TOOL1_CH1"];
         }
-
-        partial void OnIsCH1SelectedChanged(bool value)
-        {
-            if (!value)
-                return;
-
-            if (IsCH2Selected)
-                IsCH2Selected = false;
-
-            SelectedChannelName = "CH1";
-
-            LoadChannel();
-        }
-
-
-        partial void OnIsCH2SelectedChanged(bool value)
-        {
-            if (!value)
-                return;
-
-            if (IsCH1Selected)
-                IsCH1Selected = false;
-
-            SelectedChannelName = "CH2";
-
-            LoadChannel();
-        }
-
 
         [RelayCommand]
-        private void SelectCH1()
+        public void Home(object? obj)
         {
-            if (IsCH1Selected)
-                return;
-
-            IsCH1Selected = true;
+            if (obj is IAxis axis)
+            {
+                axis.Homing(axis.HomeSpeed, axis.CreepSpeed);
+            }
         }
-
-
         [RelayCommand]
-        private void SelectCH2()
+        public void JogP(object? obj)
         {
-            if (IsCH2Selected)
-                return;
-
-            IsCH2Selected = true;
-        }
-
-        private void LoadChannel()
-        {
-            string prefix = IsCH1Selected
-                ? "CH1_"
-                : "CH2_";
-
-
-            LoadAxes(prefix);
-
-            LoadCylinders(prefix);
-
-            LoadTools(prefix);
-
-            //LoadPositionData();
-
-            LoadSpecialCylinders(prefix);
-
-            //SelectedPosition = null;
-        }
-
-        private void LoadAxes(string prefix)
-        {
-            Axes.Clear();
-
-            foreach (var axis in Devices.Axis.Values)
+            if (obj is IAxis axis)
             {
-                if (!axis.Name.StartsWith(
-                        prefix,
-                        StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                axis.StatusJugger();
-
-                Axes.Add(axis);
+                axis.JOG_Positive();
             }
         }
-
-        private void LoadCylinders(string prefix)
+        [RelayCommand]
+        public void JogN(object? obj)
         {
-            Cylinders.Clear();
-
-            foreach (var cylinder in Devices.Cylinders.Values)
+            if (obj is IAxis axis)
             {
-                if (!cylinder.Name.StartsWith(
-                        prefix,
-                        StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                cylinder.StatusJugger();
-
-                Cylinders.Add(cylinder);
+                axis.JOG_Nagative();
             }
         }
-
-        private void LoadTools(string prefix)
+        [RelayCommand]
+        public void JogStop(object? obj)
         {
-            Tools.Clear();
-
-            foreach (var tool in Devices.Tools.Values)
+            if (obj is IAxis axis)
             {
-                if (!tool.Name.StartsWith(
-                        prefix,
-                        StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                tool.StatusJugger();
-
-                Tools.Add(tool);
+                axis.JOG_STOP();
             }
-
-            SelectedTool = Tools.FirstOrDefault();
         }
-
-
-        //private void LoadPositionData()
-        //{
-        //    if (IsCH1Selected)
-        //    {
-        //        JigData = _positionManager.Positions.CH1.Jig;
-        //        TrayData = _positionManager.Positions.CH1.Tray;
-        //    }
-        //    else
-        //    {
-        //        JigData = _positionManager.Positions.CH2.Jig;
-        //        TrayData = _positionManager.Positions.CH2.Tray;
-        //    }
-
-
-        //    JigData?.RebuildPositions();
-        //    TrayData?.RebuildPositions();
-
-
-        //    OnPropertyChanged(nameof(JigData));
-        //    OnPropertyChanged(nameof(TrayData));
-        //}
-
-        private void LoadSpecialCylinders(string prefix)
+        [RelayCommand]
+        public void Reset(object? obj)
         {
-            JigCylinder = null;
-            TrayCylinder = null;
-
-
-            foreach (var cylinder in Devices.Cylinders.Values)
+            if (obj is IAxis axis)
+                axis.AxisErrClear();
+        }
+        [RelayCommand]
+        public void JogLevel(object? obj)
+        {
+            if (obj is IAxis axis)
             {
-                if (!cylinder.Name.StartsWith(
-                        prefix,
-                        StringComparison.OrdinalIgnoreCase))
+                switch (axis.JogLevel)
                 {
-                    continue;
-                }
-
-                string name = cylinder.Name.ToUpperInvariant();
-
-                if (name.Contains("JIG"))
-                {
-                    JigCylinder = cylinder;
-                    continue;
-                }
-
-                if (name.Contains("TRAY"))
-                {
-                    TrayCylinder = cylinder;
+                    case 1:
+                        axis.JogLevel = 2;
+                        break;
+                    case 2:
+                        axis.JogLevel = 3;
+                        break;
+                    case 3:
+                        axis.JogLevel = 1;
+                        break;
+                    default:
+                        axis.JogLevel = 1;
+                        break;
                 }
             }
-
-
-            OnPropertyChanged(nameof(JigCylinder));
-            OnPropertyChanged(nameof(TrayCylinder));
         }
+        #endregion
 
+        #region CYLINDER
         [RelayCommand]
-        private void Servo(IAxis? axis)
+        public void JigIn()
         {
-            if (axis == null)
-                return;
-
-
-            if (axis.IsServoON)
-                _motionService.ServoOff(axis);
-            else
-                _motionService.ServoOn(axis);
-
-
-            axis.StatusJugger();
+            Devices.CYL_JIG_CH1.Move();
         }
-
         [RelayCommand]
-        private void JogPositive(IAxis? axis)
+        public void JigOut()
         {
-            if (axis == null)
-                return;
-
-            if (!axis.CanMove)
-                return;
-
-
-            _motionService.JogPositive(axis);
+            Devices.CYL_JIG_CH1.Origin();
         }
-
         [RelayCommand]
-        private void JogNegative(IAxis? axis)
+        public void TrayIn()
         {
-            if (axis == null)
-                return;
-
-            if (!axis.CanMove)
-                return;
-
-
-            _motionService.JogNegative(axis);
+            Devices.CYL_TRAY.Move();
         }
-
         [RelayCommand]
-        private void JogStop(IAxis? axis)
+        public void TrayOut()
         {
-            if (axis == null)
-                return;
-
-
-            _motionService.JogStop(axis);
-
-            axis.StatusJugger();
+            Devices.CYL_TRAY.Origin();
         }
+        #endregion
 
+        #region Tool
         [RelayCommand]
-        private void Home(IAxis? axis)
+        public void ToolVaccum(object? obj)
         {
-            if (axis == null)
-                return;
-
-            if (!axis.CanMove)
-                return;
-
-
-            _motionService.Home(axis);
-
-            axis.StatusJugger();
-        }
-
-
-        [RelayCommand]
-        private void ClearError(IAxis? axis)
-        {
-            if (axis == null)
-                return;
-
-
-            _motionService.ClearError(axis);
-
-            axis.StatusJugger();
-        }
-
-
-        [RelayCommand]
-        private void JogHigh(IAxis? axis)
-        {
-            if (axis == null)
-                return;
-            axis.JogLevel = 3;
-            axis.JogSpeed = axis.JogHSpeed;
-            axis.StatusJugger();
-        }
-
-        [RelayCommand]
-        private void JogMedium(IAxis? axis)
-        {
-            if (axis == null)
-                return;
-            axis.JogLevel = 2;
-            axis.JogSpeed = axis.JogMSpeed;
-            axis.StatusJugger();
-        }
-
-        [RelayCommand]
-        private void JogLow(IAxis? axis)
-        {
-            if (axis == null)
-                return;
-            axis.JogLevel = 1;
-            axis.JogSpeed = axis.JogLSpeed;
-            axis.StatusJugger();
-        }
-
-        [RelayCommand]
-        private void StopAxis(IAxis? axis)
-        {
-            if (axis == null)
-                return;
-            _motionService.JogStop(axis);
-            axis.StatusJugger();
-        }
-
-        [RelayCommand]
-        private void StopAll()
-        {
-            foreach (var axis in Axes)
+            if (obj is Tool tool)
             {
-                _motionService.JogStop(axis);
-
-                axis.StatusJugger();
+                tool.Vaccum();
             }
         }
-
         [RelayCommand]
-        private void MoveAbsolute(IAxis? axis)
+        public void ToolBlow(object? obj)
         {
-            if (axis == null)
-                return;
-            if (!axis.CanMove)
-                return;
-            if (axis.Speed <= 0)
-                return;
-            _motionService.MoveAbsolute(
-                axis,
-                axis.TargetPos,
-                axis.Speed);
-            axis.StatusJugger();
-        }
-
-        [RelayCommand]
-        private void MoveRelative(IAxis? axis)
-        {
-            if (axis == null)
-                return;
-            if (!axis.CanMove)
-                return;
-            if (axis.Speed <= 0)
-                return;
-            _motionService.MoveRelative(axis, axis.TargetPos, axis.Speed);
-            axis.StatusJugger();
-        }
-
-        //[RelayCommand]
-        //private void SelectJigPosition(Position3D? position)
-        //{
-        //    if (position == null)
-        //        return;
-
-
-        //    SelectedPosition = position;
-        //}
-
-        //[RelayCommand]
-        //private void SelectTrayPosition(Position3D? position)
-        //{
-        //    if (position == null)
-        //        return;
-        //    SelectedPosition = position;
-        //}
-
-        //[RelayCommand]
-        //private void TeachSelectedPosition()
-        //{
-        //    //if (SelectedPosition == null)
-        //    //    return;
-        //    var x = GetAxis("_X_AXIS");
-        //    var y = GetAxis("_Y_AXIS");
-        //    var z = GetAxis("_Z_AXIS");
-        //    if (x == null ||
-        //        y == null ||
-        //        z == null)
-        //    {
-        //        return;
-        //    }
-
-        //    SelectedPosition.X = x.CurrentPos;
-        //    SelectedPosition.Y = y.CurrentPos;
-        //    SelectedPosition.Z = z.CurrentPos;
-        //    OnPropertyChanged(nameof(SelectedPosition));
-        //    //_positionManager.Save();
-        //}
-
-        [RelayCommand]
-        private void TeachJig()
-        {
-            if (JigData == null)
-                return;
-            var x = GetAxis("_X_AXIS");
-            var y = GetAxis("_Y_AXIS");
-            var z = GetAxis("_Z_AXIS");
-            if (x == null ||
-                y == null ||
-                z == null)
+            if (obj is Tool tool)
             {
-                return;
+                tool.Blow();
             }
-            //JigData.FirstPosition.X = x.CurrentPos;
-            //JigData.FirstPosition.Y = y.CurrentPos;
-            //JigData.FirstPosition.Z = z.CurrentPos;
-            //JigData.RebuildPositions();
-            //OnPropertyChanged(nameof(JigData));
-            //_positionManager.Save();
         }
-
-        //[RelayCommand]
-        //private void TeachTray()
-        //{
-        //    if (TrayData == null)
-        //        return;
-        //    var x = GetAxis("_X_AXIS");
-        //    var y = GetAxis("_Y_AXIS");
-        //    var z = GetAxis("_Z_AXIS");
-        //    if (x == null ||
-        //        y == null ||
-        //        z == null)
-        //    {
-        //        return;
-        //    }
-        //    TrayData.FirstPosition.X = x.CurrentPos;
-        //    TrayData.FirstPosition.Y = y.CurrentPos;
-        //    TrayData.FirstPosition.Z = z.CurrentPos;
-        //    TrayData.RebuildPositions();
-        //    OnPropertyChanged(nameof(TrayData));
-        //    _positionManager.Save();
-        //}
-
-        //[RelayCommand]
-        //private void TeachZJig()
-        //{
-        //    if (JigData == null)
-        //        return;
-        //    var z = GetAxis("_Z_AXIS");
-
-        //    if (z == null)
-        //        return;
-        //    JigData.FirstPosition.Z = z.CurrentPos;
-        //    JigData.RebuildPositions();
-        //    OnPropertyChanged(nameof(JigData));
-        //    _positionManager.Save();
-        //}
-
-        //[RelayCommand]
-        //private void TeachZTray()
-        //{
-        //    if (TrayData == null)
-        //        return;
-        //    var z = GetAxis("_Z_AXIS");
-        //    if (z == null)
-        //        return;
-        //    TrayData.FirstPosition.Z = z.CurrentPos;
-        //    TrayData.RebuildPositions();
-        //    OnPropertyChanged(nameof(TrayData));
-        //    _positionManager.Save();
-        //}
-
-        //[RelayCommand]
-        //private void MoveJigFirst()
-        //{
-        //    if (JigData == null)
-        //        return;
-        //    MovePosition(JigData.FirstPosition);
-        //}
-
-        //[RelayCommand]
-        //private void MoveTrayFirst()
-        //{
-        //    if (TrayData == null)
-        //        return;
-        //    MovePosition(TrayData.FirstPosition);
-        //}
-
-        //[RelayCommand]
-        //private void MoveJigZ()
-        //{
-        //    if (JigData == null)
-        //        return;
-        //    MoveAxisZ(JigData.FirstPosition.Z);
-        //}
-
-        //[RelayCommand]
-        //private void MoveTrayZ()
-        //{
-        //    if (TrayData == null)
-        //        return;
-        //    MoveAxisZ(TrayData.FirstPosition.Z);
-        //}
-
-        //private void MovePosition(Position3D position)
-        //{
-        //    var x = GetAxis("_X_AXIS");
-        //    var y = GetAxis("_Y_AXIS");
-        //    var z = GetAxis("_Z_AXIS");
-        //    if (x == null ||
-        //        y == null ||
-        //        z == null)
-        //    {
-        //        return;
-        //    }
-        //    if (!CanMove(x) ||
-        //        !CanMove(y) ||
-        //        !CanMove(z))
-        //    {
-        //        return;
-        //    }
-        //    double xSpeed = GetMoveSpeed(x);
-        //    double ySpeed = GetMoveSpeed(y);
-        //    double zSpeed = GetMoveSpeed(z);
-        //    _motionService.MoveAbsolute(
-        //        x,
-        //        position.X,
-        //        xSpeed);
-
-        //    _motionService.MoveAbsolute(
-        //        y,
-        //        position.Y,
-        //        ySpeed);
-
-        //    _motionService.MoveAbsolute(
-        //        z,
-        //        position.Z,
-        //        zSpeed);
-
-        //    x.StatusJugger();
-        //    y.StatusJugger();
-        //    z.StatusJugger();
-        //}
-
-        private void MoveAxisZ(double position)
-        {
-            var z = GetAxis("_Z_AXIS");
-
-            if (z == null)
-                return;
-
-            if (!CanMove(z))
-                return;
-
-            _motionService.MoveAbsolute(
-                z,
-                position,
-                GetMoveSpeed(z));
-
-            z.StatusJugger();
-        }
-
-        private IAxis? GetAxis(string suffix)
-        {
-            return Axes.FirstOrDefault(
-                axis => axis.Name.EndsWith(
-                    suffix,
-                    StringComparison.OrdinalIgnoreCase));
-        }
-
-        private static bool CanMove(IAxis axis)
-        {
-            //if (!axis.IsServoON)
-            //    return false;
-
-            if (!axis.CanMove)
-                return false;
-
-            //if (axis.DevAlarm)
-            //    return false;
-
-            return true;
-        }
-
-        private static double GetMoveSpeed(IAxis axis)
-        {
-            if (axis.Speed > 0)
-                return axis.Speed;
-
-            if (axis.JogSpeed > 0)
-                return axis.JogSpeed;
-
-            return axis.JogLSpeed;
-        }
-
-        //[RelayCommand]
-        //private async Task JigForwardAsync()
-        //{
-        //    if (JigCylinder == null)
-        //        return;
-
-
-        //    await JigCylinder.ForwardAsync(
-        //        CancellationToken.None);
-        //}
-
-        //[RelayCommand]
-        //private async Task JigBackwardAsync()
-        //{
-        //    if (JigCylinder == null)
-        //        return;
-
-        //    await JigCylinder.BackwardAsync(
-        //        CancellationToken.None);
-        //}
-
-        //[RelayCommand]
-        //private void JigStop()
-        //{
-        //    JigCylinder?.Stop();
-        //}
-
-        //[RelayCommand]
-        //private async Task TrayForwardAsync()
-        //{
-        //    if (TrayCylinder == null)
-        //        return;
-        //    await TrayCylinder.ForwardAsync(
-        //        CancellationToken.None);
-        //}
-
-        //[RelayCommand]
-        //private async Task TrayBackwardAsync()
-        //{
-        //    if (TrayCylinder == null)
-        //        return;
-
-        //    await TrayCylinder.BackwardAsync(
-        //        CancellationToken.None);
-        //}
-
-        //[RelayCommand]
-        //private void TrayStop()
-        //{
-        //    TrayCylinder?.Stop();
-        //}
-
         [RelayCommand]
-        private void SelectTool(Tool? tool)
+        public void ToolOff(object? obj)
         {
-            if (tool == null)
-                return;
+            if (obj is Tool tool)
+            {
+                tool.Off();
+            }
+        }
+        [RelayCommand]
+        public void ToolUp(object? obj)
+        {
+            if (obj is Cylinder tool)
+            {
+                tool.Origin();
+            }
+        }
+        [RelayCommand]
+        public void ToolDown(object? obj)
+        {
+            if (obj is Cylinder tool)
+            {
+                tool.Move();
+            }
+        }
+        [RelayCommand]
+        private void SelectTool(object? obj)
+        {
+            if (obj is Tool tool)
+                CurTool = tool;
+        }
+        #endregion
 
-
-            SelectedTool = tool;
+        #region JIG & TRAY
+        [RelayCommand]
+        public void CreatMatrix()
+        {
+            Devices.JigCh1.CreatePos(PosControl.CH1_ROBOTX_1ST_TOOL1_POS.Position, PosControl.CH1_ROBOTY_1ST_TOOL1_POS.Position, 10000, 10000, 0);
+            Devices.JigCh1.CreatePos(PosControl.CH1_ROBOTX_1ST_TOOL2_POS.Position, PosControl.CH1_ROBOTY_1ST_TOOL2_POS.Position, 10000, 10000, 1);
+            Devices.JigCh1.CreatePos(PosControl.CH1_ROBOTX_1ST_TOOL3_POS.Position, PosControl.CH1_ROBOTY_1ST_TOOL3_POS.Position, 10000, 10000, 2);
+            Devices.JigCh1.CreatePos(PosControl.CH1_ROBOTX_1ST_TOOL4_POS.Position, PosControl.CH1_ROBOTY_1ST_TOOL4_POS.Position, 10000, 10000, 3);
+            Devices.Tray.CreatePos(PosControl.CH1_ROBOTX_1ST_TRAY_POS.Position, PosControl.CH1_ROBOTY_1ST_TRAY_POS.Position, 1000, 1000, 1);
+        }
+        [RelayCommand]
+        public void JigEdit()
+        {
+            _dialogService.ShowJigSetting(Devices.JigCh1);
         }
 
         [RelayCommand]
-        private void Vacuum(Tool? tool)
+        public void TrayEdit()
         {
-            if (tool == null)
-                return;
-
-            tool.Vaccum();
-
-            tool.StatusJugger();
+            _dialogService.ShowTraySetting(Devices.Tray);
+        }
+        [RelayCommand]
+        private void SelectJigPos(JigItem item)
+        {
+            Devices.JigCh1.SelectJigPos(item.Index);
+        }
+        [RelayCommand]
+        private void SelectTrayPos(TrayItem item)
+        {
+            Devices.Tray.SelectGroup(item.Index);
+        }
+        [RelayCommand]
+        private void JigPosMov()
+        {
+            PosData pos = Devices.JigCh1.FindPos(Devices.JigCh1.TargetPos, CurTool.Index);
+            Devices.CH1_X_AXIS.MoveAbs(pos.XPos, pos.XSpeed);
+            Devices.CH1_Y_AXIS.MoveAbs(pos.YPos, pos.YSpeed);
+        }
+        [RelayCommand]
+        private void TrayPosMov()
+        {
+            PosData pos = Devices.Tray.FindPos(Devices.Tray.TargetPos, 1);
+            Devices.CH1_X_AXIS.MoveAbs(pos.XPos, pos.XSpeed);
+            Devices.CH1_Y_AXIS.MoveAbs(pos.YPos, pos.YSpeed);
+        }
+        [RelayCommand]
+        private void Z_JIG_DOWN()
+        {
+            //Devices.CH1_Z_AXIS.MoveAbs(PosZJigDown);
+        }
+        [RelayCommand]
+        private void Z_TRAY_DOWN()
+        {
+            //Devices.CH1_Z_AXIS.MoveAbs(PosZTrayDown);
         }
 
         [RelayCommand]
-        private void Blow(Tool? tool)
+        private void TeachJig1stFromRobot()
         {
-            if (tool == null)
-                return;
-
-
-            tool.Blow();
-
-            tool.StatusJugger();
+            CurToolXPos.Position = Devices.CH1_X_AXIS.CurrentPos;
+            CurToolYPos.Position = Devices.CH1_Y_AXIS.CurrentPos;
+            OnPropertyChanged(nameof(CurXJigPos));
+            OnPropertyChanged(nameof(CurYJigPos));
+            NotifyTeachingLayout();
         }
 
         [RelayCommand]
-        private void ToolOff(Tool? tool)
+        private void TeachTray1stFromRobot()
         {
-            if (tool == null)
-                return;
-
-            tool.Off();
-
-            tool.StatusJugger();
+            TrayXPos = Devices.CH1_X_AXIS.CurrentPos;
+            TrayYPos = Devices.CH1_Y_AXIS.CurrentPos;
         }
 
         [RelayCommand]
-        private void OneCycle()
+        private void TeachZJigFromRobot()
         {
-            // Teaching chỉ thực hiện manual test.
-
+            PosZJigDown.Position = Devices.CH1_Z_AXIS.CurrentPos;
         }
+
+        [RelayCommand]
+        private void TeachZTrayFromRobot()
+        {
+            PosZTrayDown.Position = Devices.CH1_Z_AXIS.CurrentPos;
+        }
+        #endregion
     }
 }

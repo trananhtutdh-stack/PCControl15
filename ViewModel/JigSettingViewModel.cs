@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Windows;
 using PCControl.Service.Config;
+using PCControl.ViewModel;
 
 namespace PCControl.ViewModel
 {

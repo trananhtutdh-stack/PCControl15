@@ -12,8 +12,8 @@ namespace PCControl.Service.Config
     {
         public string SETTING_FILE_NAME { get; private set; } = "RecipeSetting.json";
 
-        public RecipeSetting CurrentRecipe { get; set; } = new RecipeSetting();
-        public ObservableCollection<RecipeSetting> List { get; set; } = [];
+        public RecipeSt CurrentRecipe { get; set; } = new RecipeSt();
+        public ObservableCollection<RecipeSt> List { get; set; } = [];
 
         public string TOJSON()
         {

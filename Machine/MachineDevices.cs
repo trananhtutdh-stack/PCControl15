@@ -44,14 +44,6 @@ namespace PCControl.Machine
         public TRAY Tray { get; }
 
 
-
-
-
-
-
-
-
-
         public MachineDevices(IIpcFactory ipcFactory)
         {
             Ipc = ipcFactory.Create(MAKER.WMX);
@@ -130,23 +122,23 @@ namespace PCControl.Machine
                 NoOriginShield = false
             });
 
-            CH1_X_AXIS = Ipc.Motion.CreateAxis(0);
-            CH1_X_AXIS.Name = "CH1_X Axis";
+            //CH1_X_AXIS = Ipc.Motion.CreateAxis(0);
+            //CH1_X_AXIS.Name = "CH1_X Axis";
 
-            CH1_Y_AXIS = Ipc.Motion.CreateAxis(1);
-            CH1_Y_AXIS.Name = "CH1_Y Axis";
+            //CH1_Y_AXIS = Ipc.Motion.CreateAxis(1);
+            //CH1_Y_AXIS.Name = "CH1_Y Axis";
 
-            CH1_Z_AXIS = Ipc.Motion.CreateAxis(1);
-            CH1_Z_AXIS.Name = "CH1_Z Axis";
+            //CH1_Z_AXIS = Ipc.Motion.CreateAxis(1);
+            //CH1_Z_AXIS.Name = "CH1_Z Axis";
 
-            CH2_X_AXIS = Ipc.Motion.CreateAxis(0);
-            CH2_X_AXIS.Name = "CH2_X Axis";
+            //CH2_X_AXIS = Ipc.Motion.CreateAxis(0);
+            //CH2_X_AXIS.Name = "CH2_X Axis";
 
-            CH2_Y_AXIS = Ipc.Motion.CreateAxis(1);
-            CH2_Y_AXIS.Name = "CH2_Y Axis";
+            //CH2_Y_AXIS = Ipc.Motion.CreateAxis(1);
+            //CH2_Y_AXIS.Name = "CH2_Y Axis";
 
-            CH2_Z_AXIS = Ipc.Motion.CreateAxis(1);
-            CH2_Z_AXIS.Name = "CH2_Z Axis";
+            //CH2_Z_AXIS = Ipc.Motion.CreateAxis(1);
+            //CH2_Z_AXIS.Name = "CH2_Z Axis";
 
             TOOL1_CH1 = new Tool(IOLst.X26, IOLst.X32, IOLst.Y26, IOLst.Y32, "Tool#1", 1);
             TOOL2_CH1 = new Tool(IOLst.X27, IOLst.X33, IOLst.Y27, IOLst.Y33, "Tool#2", 2);
